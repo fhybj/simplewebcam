@@ -58,6 +58,9 @@ int v833_tbl[256];
 int u400_tbl[256];
 int u2066_tbl[256];
 
+void* pImageBuf= NULL;
+int realImageSize;
+
 int errnoexit(const char *s);
 
 int xioctl(int fd, int request, void *arg);
@@ -78,8 +81,11 @@ int closedevice(void);
 
 void yuyv422toABGRY(unsigned char *src);
 
-jint Java_com_camera_simplewebcam_CameraPreview_prepareCamera( JNIEnv* env,jobject thiz, jint videoid);
-jint Java_com_camera_simplewebcam_CameraPreview_prepareCameraWithBase( JNIEnv* env,jobject thiz, jint videoid, jint videobase);
-void Java_com_camera_simplewebcam_CameraPreview_processCamera( JNIEnv* env,jobject thiz);
+static int convert2JPEG(const void *p, int size);
+static int insert_huffman(const void *in_buf, int buf_size, void *out_buf);
+
+jint Java_com_camera_simplewebcam_CameraPreview_prepareCamera( JNIEnv* env,jobject thiz, jint videoid, jobject buf);
+jint Java_com_camera_simplewebcam_CameraPreview_prepareCameraWithBase( JNIEnv* env,jobject thiz, jint videoid, jint videobase, jobject buf);
+jint Java_com_camera_simplewebcam_CameraPreview_processCamera( JNIEnv* env,jobject thiz);
 void Java_com_camera_simplewebcam_CameraPreview_stopCamera(JNIEnv* env,jobject thiz);
 void Java_com_camera_simplewebcam_CameraPreview_pixeltobmp( JNIEnv* env,jobject thiz,jobject bitmap);                                                  

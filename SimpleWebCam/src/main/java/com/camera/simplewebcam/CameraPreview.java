@@ -3,6 +3,7 @@ package com.camera.simplewebcam;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -25,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
+import java.nio.ByteBuffer;
 
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
@@ -46,7 +48,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 	// so users must use /dev/video[4-].
 	// In such a case, try cameraId=0 and cameraBase=4
 	private int cameraId=0;
-	private int cameraBase=4;
+	private int cameraBase=0;
 
 	// This definition also exists in ImageProc.h.
 	// Webcam must support the resolution 640x480 with YUYV format.
@@ -73,10 +75,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 	private int exposures[] = {10, 100, 170, 400, 500};
 	private double exposureLuminanceResults[] = {0,0,0,0,0};
 
-    // JNI functions
-    public native int prepareCamera(int videoid);
-    public native int prepareCameraWithBase(int videoid, int camerabase);
-    public native void processCamera();
+	private int imageSize;
+	private ByteBuffer mImageBuffer;
+
+	// JNI functions
+    public native int prepareCamera(int videoid, ByteBuffer buf);
+    public native int prepareCameraWithBase(int videoid, int camerabase, ByteBuffer buf);
+    public native int processCamera();
     public native void stopCamera();
     public native void pixeltobmp(Bitmap bitmap);
     static {
@@ -157,9 +162,18 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 		        	else
 		        	{
 			        	// obtaining a camera image (pixel data are stored in an array in JNI).
-			        	processCamera();
+						imageSize = processCamera();
+						if(imageSize == -1 || imageSize == 0) {
+							getHolder().unlockCanvasAndPost(canvas);
+							continue;
+						}
 			        	// camera image to bmp
-			        	pixeltobmp(bmp);
+			        	//pixeltobmp(bmp);
+						bmp = BitmapFactory.decodeByteArray(mImageBuffer.array(), mImageBuffer.arrayOffset(), imageSize);
+						if(bmp == null) {
+							getHolder().unlockCanvasAndPost(canvas);
+							continue;
+						}
 		        	}
 
 					Log.d(TAG, "bmp size " + bmp.getWidth() + "x" + bmp.getHeight());
@@ -319,7 +333,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 			bmp = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
 		}
 		// /dev/videox (x=cameraId + cameraBase) is used
-		int ret = prepareCameraWithBase(cameraId, cameraBase);
+		mImageBuffer = ByteBuffer.allocateDirect((IMG_WIDTH * IMG_HEIGHT) * 2);
+		int ret = prepareCameraWithBase(cameraId, cameraBase, mImageBuffer);
 
 		if(ret!=-1) cameraExists = true;
 

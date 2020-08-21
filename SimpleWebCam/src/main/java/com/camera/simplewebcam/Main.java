@@ -74,12 +74,14 @@ public class Main extends Activity {
 		KeyguardManager km = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
 		km.newKeyguardLock("name").disableKeyguard();
 
+
 		String intentText = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-		handleIntent(intentText, true);
+		//handleIntent(intentText, true);
 		if ("alive_check".equalsIgnoreCase(intentText)) {
 			return;
 		}
 
+		/*
 		String androidID = Settings.System.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
 		new Utils.PostReq(new Utils.PostReq.Callback() {
 			@Override
@@ -87,6 +89,7 @@ public class Main extends Activity {
 				Log.d(TAG, result ? "Done sending cameraOn" : "Error sending cameraOn");
 			}
 		}).execute(Utils.METEOR_URL + "/setGlobalState/" + androidID + "/cameraOn/true");
+		 */
 
 		if (!autocloseStopped) {
 			closeHandler = new Handler();
@@ -108,7 +111,7 @@ public class Main extends Activity {
 		}
 
 
-		(new PushNotifications(getApplicationContext(), this)).runRegisterInBackground();
+		//(new PushNotifications(getApplicationContext(), this)).runRegisterInBackground();
 
 		//load preferences to matrix
 		Matrix tmp_mx = new Matrix();
@@ -134,6 +137,7 @@ public class Main extends Activity {
 	}
 
 	public void setChargeState(boolean chargeOn) {
+		/*
 		try {
 			String chargeVal = chargeOn ? "1" : "0";
 			Runtime.getRuntime().exec("su -c echo " + chargeVal + " > /sys/class/power_supply/battery/device/charge");
@@ -141,6 +145,7 @@ public class Main extends Activity {
 			Log.e(TAG, "problems with setChargeState", e);
 			e.printStackTrace();
 		}
+		 */
 	}
 	// If the camera was turned on because the bike was bumped, it should only stay on temporarily
 	public void handleBumped() {
@@ -198,7 +203,7 @@ public class Main extends Activity {
 		super.onNewIntent(intent);
 		setIntent(intent);//must store the new intent unless getIntent() will return the old one
 		String intentText = intent.getStringExtra(Intent.EXTRA_TEXT);
-		handleIntent(intentText, false);
+		//handleIntent(intentText, false);
 	}
 
 	private void handleIntent(String intentText, final boolean fromStartup) {
